@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-cream-100 text-ink-800 antialiased;
+    font-feature-settings: "ss01" 1;
+  }
+
+  ::selection {
+    @apply bg-rust-200 text-ink-900;
+  }
+
+  /* Deliberately no color here: headings inherit from their container so a
+     heading dropped into a dark section (hero, CTA, footer) isn't silently
+     forced dark-on-dark. Sections on the light background inherit ink-900
+     from `body`; dark sections set their own text color on the wrapper. */
+  h1, h2, h3, h4 {
+    @apply font-display;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Users & auth
+// ---------------------------------------------------------------------------
+
+// NOTE: SQLite has no native enum type, so enum-like fields below are plain
+// String columns. Every write path goes through a zod schema (see
+// src/lib/validations) whose z.enum(...) is the single source of truth for
+// the allowed values — the database never sees an out-of-range value because
+// the application layer rejects it first.
+//
+// Role: "CLIENT" | "FREELANCER" | "ADMIN"
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("CLIENT")
+  avatarSeed   String // deterministic seed for the generated avatar (no external images)
+  title        String? // e.g. "Веб-дизайнер" — freelancer headline
+  bio          String?
+  location     String?
+  skills       String? // comma-separated tags
+  responseTime String? // e.g. "в течение 2 часов"
+  memberSince  DateTime @default(now())
+  isVerified   Boolean  @default(false) // ID/skills verified by Artel trust & safety team
+  balanceCents Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  services        Service[]
+  portfolioItems  PortfolioItem[]
+  ordersAsClient  Order[]         @relation("OrdersAsClient")
+  ordersAsSeller  Order[]         @relation("OrdersAsSeller")
+  reviewsWritten  Review[]        @relation("ReviewsWritten")
+  reviewsReceived Review[]        @relation("ReviewsReceived")
+  favorites       Favorite[]
+  messages        Message[]
+  conversationsA  Conversation[]  @relation("ConversationParticipantA")
+  conversationsB  Conversation[]  @relation("ConversationParticipantB")
+
+  @@index([role])
+}
+
+// ---------------------------------------------------------------------------
+// Catalog
+// ---------------------------------------------------------------------------
+
+model Category {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  icon        String // lucide icon name, kept as data not markup
+  order       Int     @default(0)
+
+  services Service[]
+}
+
+model Service {
+  id          String @id @default(cuid())
+  slug        String @unique
+  title       String
+  description String
+  coverSeed   String // deterministic seed for generated cover art
+  status      String @default("PUBLISHED") // "DRAFT" | "PUBLISHED" | "ARCHIVED"
+  rating      Float  @default(0)
+  ratingCount Int    @default(0)
+  ordersCount Int    @default(0)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id])
+
+  packages  Package[]
+  orders    Order[]
+  reviews   Review[]
+  favorites Favorite[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([sellerId])
+}
+
+model Package {
+  id           String @id @default(cuid())
+  tier         String // "BASIC" | "STANDARD" | "PREMIUM"
+  title        String
+  description  String
+  priceCents   Int
+  deliveryDays Int
+  revisions    Int
+  features     String // comma-separated bullet list
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  orders Order[]
+
+  @@unique([serviceId, tier])
+}
+
+model PortfolioItem {
+  id        String   @id @default(cuid())
+  title     String
+  coverSeed String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Orders
+// ---------------------------------------------------------------------------
+
+// OrderStatus: "PENDING_PAYMENT" | "IN_PROGRESS" | "DELIVERED"
+//            | "REVISION_REQUESTED" | "COMPLETED" | "CANCELLED" | "DISPUTED"
+
+model Order {
+  id           String    @id @default(cuid())
+  status       String    @default("PENDING_PAYMENT")
+  priceCents   Int
+  requirements String?
+  dueAt        DateTime?
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  packageId String
+  package   Package @relation(fields: [packageId], references: [id])
+
+  clientId String
+  client   User   @relation("OrdersAsClient", fields: [clientId], references: [id])
+
+  sellerId String
+  seller   User   @relation("OrdersAsSeller", fields: [sellerId], references: [id])
+
+  review Review?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([sellerId])
+}
+
+model Review {
+  id      String @id @default(cuid())
+  rating  Int // 1-5
+  comment String
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  authorId String
+  author   User   @relation("ReviewsWritten", fields: [authorId], references: [id])
+
+  targetId String
+  target   User   @relation("ReviewsReceived", fields: [targetId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([serviceId])
+  @@index([targetId])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceId String
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, serviceId])
+}
+
+// ---------------------------------------------------------------------------
+// Messaging
+// ---------------------------------------------------------------------------
+
+model Conversation {
+  id String @id @default(cuid())
+
+  participantAId String
+  participantA   User   @relation("ConversationParticipantA", fields: [participantAId], references: [id])
+
+  participantBId String
+  participantB   User   @relation("ConversationParticipantB", fields: [participantBId], references: [id])
+
+  messages  Message[]
+  updatedAt DateTime  @updatedAt
+  createdAt DateTime  @default(now())
+
+  @@unique([participantAId, participantBId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  body           String
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id])
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
