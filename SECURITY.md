@@ -17,9 +17,10 @@ contact address on the in-app `/safety` page) so it can be fixed before disclosu
 - Passwords are hashed with **bcrypt** (cost factor 12) via `bcryptjs`. Plaintext
   passwords are never logged or stored; `lib/actions/auth.ts` hashes before the first
   `db.user.create`.
-- Sessions use NextAuth's **JWT strategy** with an httpOnly, sameSite cookie. The
-  Credentials provider (`lib/auth.ts`) is the only sign-in method — no OAuth surface
-  to worry about, but also no third-party identity delegation.
+- Sessions use NextAuth's **JWT strategy** with an httpOnly, sameSite cookie. Two
+  Credentials providers exist in `lib/auth.ts`: email/password, and Telegram (see
+  "Telegram Mini App auth" below) — no OAuth surface to worry about, but also no
+  third-party identity delegation for the web flow.
 - Login and registration return **generic error messages** ("Неверный email или
   пароль", "Не удалось создать аккаунт с этими данными") regardless of *why* they
   failed, so the app never confirms or denies whether a given email is registered
@@ -27,6 +28,32 @@ contact address on the in-app `/safety` page) so it can be fixed before disclosu
 - `NEXTAUTH_SECRET` must be a real random value in any non-throwaway environment —
   `.env.example` ships an obvious placeholder specifically so nobody mistakes it for
   a safe default. Rotate it and every existing session/JWT is invalidated at once.
+
+## Telegram Mini App auth
+
+The Telegram sign-in path (`lib/telegram-auth.ts`, wired into the `telegram`
+Credentials provider in `lib/auth.ts`) is a second, separate trust boundary from
+the email/password one, worth calling out on its own:
+
+- The client hands the server Telegram's raw `initData` string. **Nothing about
+  who the user claims to be is trusted until its HMAC-SHA256 signature is verified
+  server-side** against `TELEGRAM_BOT_TOKEN`, per
+  [Telegram's documented algorithm](https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app).
+  The client-visible `initDataUnsafe` object (used only for non-security things like
+  pre-filling a display name) is exactly that — unsafe — and is never used to make an
+  authentication decision.
+- Signature comparison uses `crypto.timingSafeEqual`, not `===`, to avoid a timing
+  side-channel on the hash check.
+- `auth_date` is checked against a 24-hour window, so a leaked/logged `initData`
+  string can't be replayed indefinitely to mint a session.
+- If `TELEGRAM_BOT_TOKEN` isn't set, the provider **fails closed** (rejects every
+  login attempt with a clear error) rather than falling back to trusting unverified
+  client data.
+- Telegram-created accounts get a random, bcrypt-hashed, never-disclosed password —
+  the row satisfies the schema without being a usable credential, so someone can't
+  brute-force their way into a Telegram-only account via the ordinary `/login` form.
+- Telegram login attempts are rate-limited by IP the same way ordinary login is (see
+  below), plus Telegram's own signature check is itself a strong anti-forgery gate.
 
 ## Rate limiting
 
@@ -41,6 +68,9 @@ contact address on the in-app `/safety` page) so it can be fixed before disclosu
 - Service creation (10 / hour per user) and order creation (20 / hour per user), to
   keep either from being usable as a spam vector.
 - Outbound chat messages (30 / min per user).
+- Telegram sign-in attempts, by IP (20 / 10 min) — independent of the signature
+  check itself, so a flood of even correctly-signed requests can't be used to hammer
+  the database with `findUnique`/`create` calls.
 
 **Known limitation:** this limiter lives in process memory. It's correct for a
 single instance but does **not** share state across horizontally-scaled instances or
@@ -97,10 +127,15 @@ every response including ones the static-header block wouldn't reach):
 
 - **Content-Security-Policy** with a fresh, cryptographically random **nonce** on
   every request (`script-src 'self' 'nonce-...' 'strict-dynamic'`), `object-src
-  'none'`, `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'`.
-- `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`,
-  `Referrer-Policy: strict-origin-when-cross-origin`, and a restrictive
-  `Permissions-Policy`.
+  'none'`, `base-uri 'self'`, `form-action 'self'`.
+- `frame-ancestors 'self' https://web.telegram.org https://webk.telegram.org
+  https://webz.telegram.org` — this app is embeddable as a Telegram Mini App, and
+  Telegram's web client renders Mini Apps in an `<iframe>`, so a blanket `'none'`
+  would break that entry point entirely. This is a precise allowlist, not "allow
+  framing" — no other origin can embed the site. `X-Frame-Options` is intentionally
+  **not** set (see below); `frame-ancestors` is the actual control.
+- `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
+  and a restrictive `Permissions-Policy`.
 
 **Why every route is dynamically rendered:** a per-request nonce is only meaningful
 if the HTML is generated fresh for each request. `app/layout.tsx` calls
@@ -126,6 +161,13 @@ on inline style attributes, and nonce'ing individual `style` attributes isn't
 practical with the current component approach. This is a deliberate, scoped
 trade-off (style injection is a much narrower attack surface than script injection),
 not an oversight.
+
+The Telegram Web App SDK (`https://telegram.org/js/telegram-web-app.js`, loaded in
+`app/layout.tsx`) is cross-origin, but `script-src` was **not** widened to allowlist
+`telegram.org` by host — the script tag simply carries the same per-request nonce as
+everything else. Under `'strict-dynamic'`, a script's origin doesn't matter; only
+whether it has a valid nonce (or was loaded by another already-trusted script) does.
+That keeps the allowlist exactly as tight as before this integration was added.
 
 ## Open redirects
 

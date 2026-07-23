@@ -24,6 +24,7 @@ model User {
   name         String
   email        String   @unique
   passwordHash String
+  telegramId   String?  @unique // set for accounts created/linked via Telegram Mini App login
   role         String   @default("CLIENT")
   avatarSeed   String // deterministic seed for the generated avatar (no external images)
   title        String? // e.g. "Веб-дизайнер" — freelancer headline

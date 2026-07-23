@@ -17,7 +17,10 @@ export default async function ConversationPage({ params }: { params: { id: strin
   if (!thread) notFound();
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-3xl flex-col overflow-hidden rounded-xl2 border border-ink-100 bg-cream-50 shadow-card">
+    <div
+      className="mx-auto flex max-w-3xl flex-col overflow-hidden rounded-xl2 border border-ink-100 bg-cream-50 shadow-card"
+      style={{ height: "calc(100vh - 8rem - var(--telegram-tabbar-space, 0px))" }}
+    >
       <div className="flex items-center gap-3 border-b border-ink-100 p-4">
         <Link href="/dashboard/messages" className="text-ink-400 hover:text-ink-600">
           <ChevronLeft className="size-5" />

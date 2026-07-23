@@ -30,7 +30,7 @@ const columns = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-ink-100 bg-ink-950 text-ink-100">
+    <footer className="telegram-hide border-t border-ink-100 bg-ink-950 text-ink-100">
       <div className="container py-14">
         <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>

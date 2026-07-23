@@ -35,3 +35,39 @@
     text-wrap: balance;
   }
 }
+
+/* Telegram Mini App chrome switching. Deliberately OUTSIDE any @layer: CSS
+   cascade layers give unlayered rules top priority over every layered rule
+   regardless of specificity or source order, so these two always win over
+   whatever Tailwind utility classes (hidden, lg:flex, ...) also sit on the
+   same element — no !important arms race needed.
+
+   `data-telegram="1"` is set by an inline script in app/layout.tsx (see
+   TELEGRAM_DETECT_SCRIPT) as early in the page lifecycle as Next.js's App
+   Router allows — well before a client component's useEffect would run, cutting
+   the "wrong chrome" window down to well under 100ms rather than eliminating
+   it outright. See the comment on TELEGRAM_DETECT_SCRIPT for the measured
+   number and why it isn't a hard guarantee. */
+html[data-telegram="1"] .telegram-hide {
+  display: none !important;
+}
+.telegram-only {
+  display: none;
+}
+html[data-telegram="1"] .telegram-only {
+  display: flex;
+}
+/* Reserve space for the fixed MiniAppTabBar so it doesn't cover page content.
+   Exposed as a variable (not just body padding) so fixed-height layouts that
+   compute their own height from 100vh — like the chat thread panel — can
+   subtract it too; body padding alone wouldn't shrink an element that's
+   already sized independently of document flow. */
+:root {
+  --telegram-tabbar-space: 0px;
+}
+html[data-telegram="1"] {
+  --telegram-tabbar-space: calc(56px + env(safe-area-inset-bottom));
+}
+html[data-telegram="1"] body {
+  padding-bottom: var(--telegram-tabbar-space);
+}

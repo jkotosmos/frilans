@@ -11,7 +11,7 @@ export async function Navbar() {
   const categories = await getCategories();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-100 bg-cream-50/90 backdrop-blur-md">
+    <header className="telegram-hide sticky top-0 z-40 border-b border-ink-100 bg-cream-50/90 backdrop-blur-md">
       <div className="container flex h-[72px] items-center gap-4">
         <Logo />
 

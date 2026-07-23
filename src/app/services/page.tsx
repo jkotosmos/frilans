@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { Filters } from "@/components/catalog/filters";
 import { ServiceCard } from "@/components/catalog/service-card";
+import { SearchBox } from "@/components/layout/search-box";
 import { getCategories } from "@/lib/queries/categories";
 import { getFilteredServices } from "@/lib/queries/services";
 import { serviceFiltersSchema } from "@/lib/validations/service";
@@ -41,6 +43,13 @@ export default async function ServicesPage({
           </h1>
           <p className="mt-1 text-ink-500">{result.total} услуг найдено</p>
         </div>
+
+        {/* Navbar carries this on desktop; repeated here for narrow viewports
+            and for the Telegram Mini App, where the navbar is hidden entirely
+            and this is the only way to search. */}
+        <Suspense fallback={<div className="mb-6 h-11 rounded-full bg-ink-100 lg:hidden" />}>
+          <SearchBox className="mb-6 lg:hidden" />
+        </Suspense>
 
         <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
           <Filters categories={categories.map((c) => ({ slug: c.slug, name: c.name }))} />
