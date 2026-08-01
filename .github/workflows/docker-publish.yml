@@ -1,11 +1,12 @@
 name: Publish Docker image
 
-# Builds the self-hosted deploy image (see Dockerfile, DEPLOYMENT.md "Путь B")
-# and pushes it to GitHub Container Registry. Not needed if you're deploying
-# to Vercel instead — that path doesn't use this file or the Dockerfile at all.
+# Builds the self-hosted, Postgres-backed image (see Dockerfile,
+# DEPLOYMENT.md "Полная динамическая версия") — the dynamic version with
+# real accounts and a real database, not the GitHub Pages static demo that
+# deploy-pages.yml publishes. Manual-only for now, since the current default
+# is the static demo (see README); run this yourself when you're ready to
+# stand up the dynamic version somewhere with a database.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

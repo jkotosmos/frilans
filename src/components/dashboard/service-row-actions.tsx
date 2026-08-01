@@ -1,25 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { setServiceStatus } from "@/lib/actions/services";
+import { demoAction } from "@/lib/demo-actions";
 
-export function ServiceRowActions({ serviceId, status }: { serviceId: string; status: string }) {
-  const router = useRouter();
+export function ServiceRowActions({ status }: { serviceId: string; status: string }) {
   const [loading, setLoading] = useState(false);
 
-  async function toggle() {
+  function toggle() {
     setLoading(true);
-    const next = status === "PUBLISHED" ? "ARCHIVED" : "PUBLISHED";
-    const result = await setServiceStatus(serviceId, next);
+    demoAction();
     setLoading(false);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    router.refresh();
   }
 
   return (

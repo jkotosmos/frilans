@@ -1,13 +1,15 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getDemoUser } from "@/lib/static-data";
 
+// Static export build (see DEPLOYMENT.md): there's no server, so there's no
+// real session to read. Every page renders as this fixed seeded freelancer
+// instead — the point is to keep /dashboard genuinely visible (real-looking
+// orders, services, messages) rather than a permanent redirect to a login
+// form that can't actually authenticate anyone. The dynamic (Postgres +
+// NextAuth) version of this function is in git history.
 export async function getCurrentUser() {
-  const session = await getServerSession(authOptions);
-  return session?.user ?? null;
+  return getDemoUser();
 }
 
 export async function requireUser() {
-  const user = await getCurrentUser();
-  if (!user) throw new Error("UNAUTHENTICATED");
-  return user;
+  return getCurrentUser();
 }

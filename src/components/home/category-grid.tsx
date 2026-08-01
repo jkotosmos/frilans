@@ -1,12 +1,9 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
+import { getCategoriesWithServiceCount } from "@/lib/static-data";
 import { iconFor } from "@/lib/icons";
 
 export async function CategoryGrid() {
-  const categories = await db.category.findMany({
-    orderBy: { order: "asc" },
-    include: { _count: { select: { services: { where: { status: "PUBLISHED" } } } } },
-  });
+  const categories = getCategoriesWithServiceCount();
 
   return (
     <section className="py-16">

@@ -1,26 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
-import { toast } from "sonner";
 import { ServiceCard, type ServiceCardData } from "@/components/catalog/service-card";
-import { toggleFavorite } from "@/lib/actions/services";
+import { demoAction } from "@/lib/demo-actions";
 
-export function FavoriteCard({ service, serviceId }: { service: ServiceCardData; serviceId: string }) {
-  const router = useRouter();
+export function FavoriteCard({ service }: { service: ServiceCardData; serviceId: string }) {
   const [removing, setRemoving] = useState(false);
 
-  async function onRemove() {
+  function onRemove() {
     setRemoving(true);
-    const result = await toggleFavorite(serviceId);
+    demoAction();
     setRemoving(false);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    toast.success("Удалено из избранного");
-    router.refresh();
   }
 
   return (

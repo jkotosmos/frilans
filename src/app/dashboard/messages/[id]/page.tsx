@@ -4,10 +4,16 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/session";
 import { getConversationThread } from "@/lib/queries/messages";
+import { getAllConversationIds } from "@/lib/static-data";
 import { Avatar } from "@/components/ui/avatar";
 import { ChatThread } from "@/components/dashboard/chat-thread";
 
 export const metadata: Metadata = { title: "Диалог" };
+
+export async function generateStaticParams() {
+  const ids = await getAllConversationIds();
+  return ids.map((id) => ({ id }));
+}
 
 export default async function ConversationPage({ params }: { params: { id: string } }) {
   const user = await getCurrentUser();

@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
-import { updateProfile } from "@/lib/actions/profile";
+import { demoAction } from "@/lib/demo-actions";
 
 interface SettingsFormProps {
   initial: {
@@ -20,7 +18,6 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ initial, isFreelancer }: SettingsFormProps) {
-  const router = useRouter();
   const [values, setValues] = useState(initial);
   const [loading, setLoading] = useState(false);
 
@@ -28,19 +25,11 @@ export function SettingsForm({ initial, isFreelancer }: SettingsFormProps) {
     setValues((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const formData = new FormData();
-    for (const [key, value] of Object.entries(values)) formData.set(key, value);
-    const result = await updateProfile(formData);
+    demoAction();
     setLoading(false);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    toast.success("Профиль обновлён");
-    router.refresh();
   }
 
   return (

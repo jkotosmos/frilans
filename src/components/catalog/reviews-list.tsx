@@ -29,7 +29,9 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="font-medium text-ink-900">{review.author.name}</span>
-              <span className="text-xs text-ink-300">{formatRelativeDate(review.createdAt)}</span>
+              <span className="text-xs text-ink-300" suppressHydrationWarning>
+                {formatRelativeDate(review.createdAt)}
+              </span>
             </div>
             <Rating value={review.rating} showValue={false} stars className="mt-1" />
             <p className="mt-2 text-sm leading-relaxed text-ink-600">{review.comment}</p>

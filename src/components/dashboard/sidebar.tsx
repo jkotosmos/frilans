@@ -29,7 +29,7 @@ export function DashboardSidebar({ role }: { role: Role }) {
   return (
     <>
       <aside className="hidden h-full w-64 shrink-0 flex-col border-r border-ink-100 bg-cream-50 p-4 lg:flex">
-        <Link href="/" className="mb-6 flex items-center gap-1.5 px-2 text-sm text-ink-400 hover:text-ink-600">
+        <Link href="/" prefetch={false} className="mb-6 flex items-center gap-1.5 px-2 text-sm text-ink-400 hover:text-ink-600">
           <ArrowLeft className="size-3.5" /> На главную
         </Link>
         <nav className="flex flex-col gap-1">

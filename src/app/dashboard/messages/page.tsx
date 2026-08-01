@@ -36,7 +36,11 @@ export default async function MessagesPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate font-medium text-ink-900">{c.other.name}</p>
-                      {c.lastMessage && <span className="shrink-0 text-xs text-ink-300">{formatRelativeDate(c.lastMessage.createdAt)}</span>}
+                      {c.lastMessage && (
+                        <span className="shrink-0 text-xs text-ink-300" suppressHydrationWarning>
+                          {formatRelativeDate(c.lastMessage.createdAt)}
+                        </span>
+                      )}
                     </div>
                     <p className="truncate text-sm text-ink-500">{c.lastMessage?.body ?? "Нет сообщений"}</p>
                   </div>

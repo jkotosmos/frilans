@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Calendar, Package, FileText } from "lucide-react";
-import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
+import { getOrderById, getAllOrderIds } from "@/lib/static-data";
 import { OrderStatusBadge } from "@/components/dashboard/order-status-badge";
 import { OrderActions } from "@/components/dashboard/order-actions";
 import { ReviewForm } from "@/components/dashboard/review-form";
@@ -25,20 +25,16 @@ const ACTION_LABELS: Partial<Record<OrderStatus, { label: string; variant?: "pri
   DISPUTED: { label: "Открыть спор", variant: "outline", confirm: "Спор передаст заказ на рассмотрение службы поддержки. Продолжить?" },
 };
 
+export async function generateStaticParams() {
+  const ids = await getAllOrderIds();
+  return ids.map((id) => ({ id }));
+}
+
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const order = await db.order.findUnique({
-    where: { id: params.id },
-    include: {
-      service: { select: { title: true, slug: true } },
-      package: true,
-      client: { select: { id: true, name: true, avatarSeed: true } },
-      seller: { select: { id: true, name: true, avatarSeed: true } },
-      review: true,
-    },
-  });
+  const order = await getOrderById(params.id);
 
   if (!order) notFound();
   const isClient = order.clientId === user.id;

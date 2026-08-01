@@ -10,35 +10,6 @@ jobs:
   build:
     name: Typecheck, lint, build
     runs-on: ubuntu-latest
-    services:
-      # The schema targets PostgreSQL (see prisma/schema.prisma), so CI needs
-      # a real one to push the schema to — a mismatched provider/URL pair
-      # (e.g. a sqlite file against a postgresql-configured schema) is a hard
-      # Prisma error, not something that degrades gracefully. This container
-      # only ever exists for the life of the CI run.
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: artel_ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    env:
-      # CI only needs to prove the code compiles/lints/builds — no page in
-      # this app queries the database at build time (see README: every route
-      # is dynamically rendered) — but `next build` still does a trial render
-      # of each route, and that touches a real query, so the schema below
-      # still needs to be pushed first (see the build step). Real deploys use
-      # their own DATABASE_URL / NEXTAUTH_SECRET from host secrets, never these.
-      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/artel_ci"
-      NEXTAUTH_SECRET: "ci-only-placeholder-not-used-anywhere-real"
-      NEXTAUTH_URL: "http://localhost:3000"
     steps:
       - uses: actions/checkout@v4
 
@@ -56,14 +27,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Push schema to the CI database
-        # Without this, next build's trial render of each route hits a
-        # database with no tables and logs a wall of Prisma "relation does
-        # not exist" errors. They're caught and harmless (Next falls back to
-        # dynamic rendering correctly either way), but they look exactly like
-        # a real failure at a glance. Pushing the schema first keeps the CI
-        # log honest: silent when nothing is actually wrong.
-        run: npm run db:push
-
-      - name: Build
+      - name: Build static export
+        # No database involved: the app reads src/data/seed-data.json (see
+        # DEPLOYMENT.md), not Prisma, so `next build` needs nothing beyond
+        # the checked-out source.
         run: npm run build

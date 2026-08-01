@@ -1,35 +1,22 @@
 /** @type {import('next').NextConfig} */
-// Baseline headers as defense-in-depth for responses middleware doesn't touch
-// (e.g. static files under /public). Per-request pages get a stricter,
-// nonce-based Content-Security-Policy from middleware.ts.
+// Static export for GitHub Pages — see DEPLOYMENT.md for what this trades
+// away (auth, mutations, per-request rendering; all UI still renders, see
+// src/lib/demo-actions.ts) and how to go back to a real server-backed deploy
+// later (git history has the Postgres-backed version this was converted from).
 //
-// No X-Frame-Options here: this app is embeddable as a Telegram Mini App,
-// which Telegram Web renders in an <iframe>. middleware.ts's
-// Content-Security-Policy `frame-ancestors` directive is the actual, precise
-// control (it can allowlist specific origins; X-Frame-Options can't), so
-// this file only carries the headers that don't conflict with that.
-const securityHeaders = [
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
-];
+// GitHub Pages serves this repo at https://<user>.github.io/frilans/ — a
+// subpath, not the domain root — so basePath/assetPrefix are required or
+// every internal link and asset resolves one level too high and 404s. If you
+// ever move this to a custom domain or a <user>.github.io repo, set both to "".
+const REPO_BASE_PATH = "/frilans";
 
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  // Only affects `docker build` (see Dockerfile) — produces a minimal
-  // self-contained server in .next/standalone instead of requiring the full
-  // node_modules tree at runtime. Vercel ignores this and doesn't need it;
-  // it's here for self-hosted/Docker deploys. See DEPLOYMENT.md.
-  output: "standalone",
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        headers: securityHeaders,
-      },
-    ];
-  },
+  output: "export",
+  basePath: REPO_BASE_PATH,
+  assetPrefix: REPO_BASE_PATH,
+  images: { unoptimized: true },
 };
 
 export default nextConfig;

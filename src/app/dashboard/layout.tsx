@@ -1,14 +1,13 @@
-import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Logo } from "@/components/layout/logo";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  // Static export build: getCurrentUser() always resolves to a fixed demo
+  // user (see lib/session.ts) — there's no real auth to redirect away from
+  // without a server. The dynamic version's auth guard is in git history.
   const user = await getCurrentUser();
-  // Defense in depth: middleware already guards /dashboard, but every layout
-  // that reads session-scoped data re-checks it locally too.
-  if (!user) redirect("/login?callbackUrl=/dashboard");
 
   return (
     <div className="flex min-h-screen flex-col bg-cream-100 lg:flex-row">

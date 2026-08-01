@@ -1,61 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { Briefcase, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { registerUser } from "@/lib/actions/auth";
+import { demoAction } from "@/lib/demo-actions";
 
 export function RegisterForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const initialRole = params.get("role") === "FREELANCER" ? "FREELANCER" : "CLIENT";
 
   const [role, setRole] = useState<"CLIENT" | "FREELANCER">(initialRole);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
     setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    formData.set("role", role);
-
-    const result = await registerUser(formData);
-    if (!result.ok) {
-      setError(result.error);
-      setLoading(false);
-      return;
-    }
-
-    const signInRes = await signIn("credentials", {
-      email: formData.get("email"),
-      password: formData.get("password"),
-      redirect: false,
-    });
-
+    demoAction("Демо-версия на GitHub Pages: регистрации нет, вы уже смотрите сайт от имени демо-пользователя. Загляните в «Кабинет» в меню.");
     setLoading(false);
-    if (signInRes?.error) {
-      router.push("/login");
-      return;
-    }
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      {error && (
-        <div className="rounded-lg bg-rust-50 px-3.5 py-2.5 text-sm text-rust-700" role="alert">
-          {error}
-        </div>
-      )}
-
       <div>
         <Label>Я хочу</Label>
         <div className="grid grid-cols-2 gap-2">

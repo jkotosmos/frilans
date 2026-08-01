@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Plus, Briefcase } from "lucide-react";
-import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
+import { getServicesForSeller } from "@/lib/static-data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GeneratedCover } from "@/components/ui/generated-cover";
@@ -17,11 +17,7 @@ export default async function MyServicesPage() {
   if (!user) return null;
   if (user.role !== "FREELANCER") redirect("/dashboard");
 
-  const services = await db.service.findMany({
-    where: { sellerId: user.id },
-    include: { category: true, packages: { orderBy: { priceCents: "asc" } } },
-    orderBy: { createdAt: "desc" },
-  });
+  const services = await getServicesForSeller(user.id);
 
   return (
     <div className="mx-auto max-w-4xl">

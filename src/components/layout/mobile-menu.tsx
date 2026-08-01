@@ -3,7 +3,8 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
+import { useDemoSession } from "@/components/demo/demo-session";
+import { demoAction } from "@/lib/demo-actions";
 import { iconFor } from "@/lib/icons";
 import { SearchBox } from "./search-box";
 
@@ -13,7 +14,7 @@ interface MobileMenuProps {
 
 export function MobileMenu({ categories }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
-  const { data: session } = useSession();
+  const user = useDemoSession();
 
   return (
     <div className="lg:hidden">
@@ -73,36 +74,20 @@ export function MobileMenu({ categories }: MobileMenuProps) {
 
             <div className="my-4 h-px bg-ink-100" />
 
-            {session ? (
-              <div className="flex flex-col gap-1 text-sm">
-                <Link href="/dashboard" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 font-medium text-ink-800 hover:bg-ink-50">
-                  Кабинет
-                </Link>
-                <button
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                  className="rounded-lg px-3 py-2.5 text-left text-rust-600 hover:bg-rust-50"
-                >
-                  Выйти
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <Link
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                  className="rounded-full border border-ink-200 px-4 py-2.5 text-center text-sm font-medium text-ink-800"
-                >
-                  Войти
-                </Link>
-                <Link
-                  href="/register"
-                  onClick={() => setOpen(false)}
-                  className="rounded-full bg-rust-500 px-4 py-2.5 text-center text-sm font-medium text-cream-50"
-                >
-                  Регистрация
-                </Link>
-              </div>
-            )}
+            <div className="flex flex-col gap-1 text-sm">
+              <Link href="/dashboard" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 font-medium text-ink-800 hover:bg-ink-50">
+                Кабинет ({user.name})
+              </Link>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  demoAction("Демо-версия без сервера: аккаунт зафиксирован, выйти нельзя. В полной версии — обычный вход/выход.");
+                }}
+                className="rounded-lg px-3 py-2.5 text-left text-rust-600 hover:bg-rust-50"
+              >
+                Выйти
+              </button>
+            </div>
           </div>
         </div>
       )}

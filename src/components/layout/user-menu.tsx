@@ -2,13 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
 import { ChevronDown, LayoutDashboard, MessageSquare, Settings, LogOut, Heart, Briefcase } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { useDemoSession } from "@/components/demo/demo-session";
+import { demoAction } from "@/lib/demo-actions";
 
 export function UserMenu() {
-  const { data: session, status } = useSession();
+  const user = useDemoSession();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -19,29 +19,6 @@ export function UserMenu() {
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
-
-  if (status === "loading") {
-    return <div className="size-10 animate-pulse rounded-full bg-ink-100" />;
-  }
-
-  if (!session) {
-    return (
-      <div className="flex items-center gap-2">
-        <Link href="/login">
-          <Button variant="ghost" size="sm">
-            Войти
-          </Button>
-        </Link>
-        <Link href="/register">
-          <Button variant="primary" size="sm">
-            Регистрация
-          </Button>
-        </Link>
-      </div>
-    );
-  }
-
-  const { user } = session;
 
   return (
     <div className="relative" ref={ref}>
@@ -77,7 +54,10 @@ export function UserMenu() {
               <Settings className="size-4" /> Настройки
             </Link>
             <button
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => {
+                setOpen(false);
+                demoAction("Демо-версия без сервера: аккаунт зафиксирован, выйти нельзя. В полной версии — обычный вход/выход.");
+              }}
               className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-rust-600 hover:bg-rust-50"
             >
               <LogOut className="size-4" /> Выйти

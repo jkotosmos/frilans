@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { getCategories } from "@/lib/queries/categories";
+import { getServiceForEdit, getAllServiceIds } from "@/lib/static-data";
 import { ServiceForm } from "@/components/dashboard/service-form";
 import type { PackageTier } from "@/lib/constants";
 
 export const metadata: Metadata = { title: "Редактирование услуги" };
+
+export async function generateStaticParams() {
+  const ids = await getAllServiceIds();
+  return ids.map((id) => ({ id }));
+}
 
 export default async function EditServicePage({ params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return null;
   if (user.role !== "FREELANCER") redirect("/dashboard");
 
-  const [service, categories] = await Promise.all([
-    db.service.findUnique({ where: { id: params.id }, include: { packages: true } }),
-    getCategories(),
-  ]);
+  const [service, categories] = await Promise.all([getServiceForEdit(params.id), getCategories()]);
 
   if (!service) notFound();
   if (service.sellerId !== user.id) notFound();

@@ -12,7 +12,12 @@ import { ReviewsList } from "@/components/catalog/reviews-list";
 import { FavoriteButton } from "@/components/catalog/favorite-button";
 import { getServiceBySlug } from "@/lib/queries/service-detail";
 import { getCurrentUser } from "@/lib/session";
-import { db } from "@/lib/db";
+import { getAllServiceSlugs, isServiceFavorited } from "@/lib/static-data";
+
+export async function generateStaticParams() {
+  const slugs = await getAllServiceSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const service = await getServiceBySlug(params.slug);
@@ -25,9 +30,7 @@ export default async function ServiceDetailPage({ params }: { params: { slug: st
   if (!service) notFound();
 
   const isOwnService = user?.id === service.seller.id;
-  const isFavorited = user
-    ? Boolean(await db.favorite.findUnique({ where: { userId_serviceId: { userId: user.id, serviceId: service.id } } }))
-    : false;
+  const isFavorited = user ? await isServiceFavorited(user.id, service.id) : false;
 
   return (
     <>

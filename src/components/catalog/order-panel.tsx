@@ -1,15 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { Check, Clock, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { cn, formatPrice } from "@/lib/utils";
 import { PACKAGE_TIER_LABELS, type PackageTier } from "@/lib/constants";
-import { createOrder } from "@/lib/actions/orders";
+import { demoAction } from "@/lib/demo-actions";
 
 interface PackageData {
   id: string;
@@ -23,8 +20,6 @@ interface PackageData {
 }
 
 export function OrderPanel({ packages, isOwnService }: { packages: PackageData[]; isOwnService: boolean }) {
-  const router = useRouter();
-  const { data: session, status } = useSession();
   const sorted = [...packages].sort((a, b) => a.priceCents - b.priceCents);
   const [selectedId, setSelectedId] = useState(sorted[1]?.id ?? sorted[0]?.id);
   const [requirements, setRequirements] = useState("");
@@ -33,23 +28,10 @@ export function OrderPanel({ packages, isOwnService }: { packages: PackageData[]
   const selected = sorted.find((p) => p.id === selectedId) ?? sorted[0]!;
   const features = selected.features.split(",").map((f) => f.trim()).filter(Boolean);
 
-  async function onOrder() {
-    if (status !== "authenticated") {
-      router.push(`/login?callbackUrl=/services`);
-      return;
-    }
+  function onOrder() {
     setLoading(true);
-    const formData = new FormData();
-    formData.set("packageId", selected.id);
-    formData.set("requirements", requirements);
-    const result = await createOrder(formData);
+    demoAction();
     setLoading(false);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    toast.success("Заказ создан! Переходим к оплате.");
-    router.push(`/dashboard/orders/${result.orderId}`);
   }
 
   return (

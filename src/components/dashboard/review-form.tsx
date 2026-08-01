@@ -1,36 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { leaveReview } from "@/lib/actions/orders";
+import { demoAction } from "@/lib/demo-actions";
 
-export function ReviewForm({ orderId }: { orderId: string }) {
-  const router = useRouter();
+export function ReviewForm({}: { orderId: string }) {
   const [rating, setRating] = useState(5);
   const [hovered, setHovered] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const formData = new FormData();
-    formData.set("orderId", orderId);
-    formData.set("rating", String(rating));
-    formData.set("comment", comment);
-    const result = await leaveReview(formData);
+    demoAction();
     setLoading(false);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    toast.success("Спасибо за отзыв!");
-    router.refresh();
   }
 
   return (

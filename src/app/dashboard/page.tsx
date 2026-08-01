@@ -49,7 +49,8 @@ export default async function DashboardOverviewPage() {
                     <div className="min-w-0">
                       <p className="truncate font-medium text-ink-900">{order.service.title}</p>
                       <p className="mt-0.5 text-xs text-ink-400">
-                        {isClient ? `Исполнитель: ${order.seller.name}` : `Заказчик: ${order.client.name}`} · {formatRelativeDate(order.updatedAt)}
+                        {isClient ? `Исполнитель: ${order.seller.name}` : `Заказчик: ${order.client.name}`} ·{" "}
+                        <span suppressHydrationWarning>{formatRelativeDate(order.updatedAt)}</span>
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-3">

@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label, Select } from "@/components/ui/input";
 import { PACKAGE_TIER_LABELS, PACKAGE_TIERS, type PackageTier } from "@/lib/constants";
-import { createService, updateService } from "@/lib/actions/services";
+import { demoAction } from "@/lib/demo-actions";
 
 interface PackageValues {
   title: string;
@@ -32,8 +30,7 @@ interface ServiceFormProps {
   };
 }
 
-export function ServiceForm({ categories, mode, serviceId, initialValues }: ServiceFormProps) {
-  const router = useRouter();
+export function ServiceForm({ categories, mode, initialValues }: ServiceFormProps) {
   const [title, setTitle] = useState(initialValues?.title ?? "");
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [categoryId, setCategoryId] = useState(initialValues?.categoryId ?? categories[0]?.id ?? "");
@@ -58,34 +55,11 @@ export function ServiceForm({ categories, mode, serviceId, initialValues }: Serv
     setActiveTiers((prev) => prev.filter((t) => t !== tier));
   }
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-
-    const formData = new FormData();
-    formData.set("title", title);
-    formData.set("description", description);
-    formData.set("categoryId", categoryId);
-    for (const tier of activeTiers) {
-      const pkg = packages[tier];
-      formData.set(`${tier}_title`, pkg.title);
-      formData.set(`${tier}_description`, pkg.description);
-      formData.set(`${tier}_price`, pkg.priceRub);
-      formData.set(`${tier}_delivery`, pkg.deliveryDays);
-      formData.set(`${tier}_revisions`, pkg.revisions);
-      formData.set(`${tier}_features`, pkg.features);
-    }
-
-    const result = mode === "create" ? await createService(formData) : await updateService(serviceId!, formData);
+    demoAction();
     setLoading(false);
-
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    toast.success(mode === "create" ? "Услуга опубликована" : "Изменения сохранены");
-    router.push("/dashboard/services");
-    router.refresh();
   }
 
   return (

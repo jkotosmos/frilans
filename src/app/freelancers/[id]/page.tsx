@@ -11,8 +11,14 @@ import { ServiceCard } from "@/components/catalog/service-card";
 import { ReviewsList } from "@/components/catalog/reviews-list";
 import { MessageButton } from "@/components/catalog/message-button";
 import { getFreelancerById } from "@/lib/queries/freelancer-detail";
+import { getAllFreelancerIds } from "@/lib/static-data";
 import { formatDate } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/session";
+
+export async function generateStaticParams() {
+  const ids = await getAllFreelancerIds();
+  return ids.map((id) => ({ id }));
+}
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const freelancer = await getFreelancerById(params.id);

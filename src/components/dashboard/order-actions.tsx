@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { transitionOrder } from "@/lib/actions/orders";
+import { demoAction } from "@/lib/demo-actions";
 import type { OrderStatus } from "@/lib/constants";
 
 interface Action {
@@ -14,21 +12,14 @@ interface Action {
   confirm?: string;
 }
 
-export function OrderActions({ orderId, actions }: { orderId: string; actions: Action[] }) {
-  const router = useRouter();
+export function OrderActions({ actions }: { orderId: string; actions: Action[] }) {
   const [pending, setPending] = useState<string | null>(null);
 
-  async function run(action: Action) {
+  function run(action: Action) {
     if (action.confirm && !window.confirm(action.confirm)) return;
     setPending(action.next);
-    const result = await transitionOrder(orderId, action.next);
+    demoAction();
     setPending(null);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    toast.success("Статус заказа обновлён");
-    router.refresh();
   }
 
   if (actions.length === 0) return null;

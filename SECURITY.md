@@ -1,5 +1,16 @@
 # Security overview
 
+> **Scope note:** the site currently deployed via GitHub Pages is a static export
+> with no server, no database, and no real authentication (see `README.md` —
+> "Текущий режим"). Everything below describes the **dynamic version** — real
+> registration, PostgreSQL, NextAuth sessions, Server Actions — which was fully
+> built and working, and remains in this branch's git history (see
+> `DEPLOYMENT.md` → "Полная динамическая версия" for how to bring it back). None
+> of the mechanisms below (auth, rate limiting, CSRF-relevant headers tied to a
+> per-request nonce, etc.) run in the static build — there's no server for them
+> to run on. This document is the reference for reviving that version correctly,
+> not a description of what's live right now.
+
 This document explains the security posture of Артель as it stands, written from
 the perspective of the security review that shaped the build (see `README.md` for
 the product overview). It is meant to be read by whoever picks this project up next

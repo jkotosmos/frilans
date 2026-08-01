@@ -1,46 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
-import { safeInternalPath } from "@/lib/utils";
+import { demoAction } from "@/lib/demo-actions";
 
 export function LoginForm() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
     setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const res = await signIn("credentials", {
-      email: formData.get("email"),
-      password: formData.get("password"),
-      redirect: false,
-    });
-
+    demoAction("Демо-версия на GitHub Pages: входа нет, вы уже смотрите сайт от имени демо-пользователя. Загляните в «Кабинет» в меню.");
     setLoading(false);
-    if (res?.error) {
-      setError("Неверный email или пароль");
-      return;
-    }
-    router.push(safeInternalPath(params.get("callbackUrl")));
-    router.refresh();
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      {error && (
-        <div className="rounded-lg bg-rust-50 px-3.5 py-2.5 text-sm text-rust-700" role="alert">
-          {error}
-        </div>
-      )}
       <div>
         <Label htmlFor="email">Email</Label>
         <Input id="email" name="email" type="email" autoComplete="email" required maxLength={255} placeholder="you@example.com" />

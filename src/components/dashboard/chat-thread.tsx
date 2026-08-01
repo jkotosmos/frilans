@@ -1,12 +1,10 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Send } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { cn, formatRelativeDate } from "@/lib/utils";
-import { sendMessage } from "@/lib/actions/messages";
+import { demoAction } from "@/lib/demo-actions";
 
 interface MessageItem {
   id: string;
@@ -16,7 +14,6 @@ interface MessageItem {
 }
 
 export function ChatThread({
-  conversationId,
   currentUserId,
   messages,
 }: {
@@ -24,7 +21,6 @@ export function ChatThread({
   currentUserId: string;
   messages: MessageItem[];
 }) {
-  const router = useRouter();
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -33,21 +29,12 @@ export function ChatThread({
     bottomRef.current?.scrollIntoView({ block: "end" });
   }, [messages.length]);
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!body.trim()) return;
     setLoading(true);
-    const formData = new FormData();
-    formData.set("conversationId", conversationId);
-    formData.set("body", body);
-    const result = await sendMessage(formData);
+    demoAction();
     setLoading(false);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    setBody("");
-    router.refresh();
   }
 
   return (
@@ -65,7 +52,9 @@ export function ChatThread({
                 )}
               >
                 <p className="whitespace-pre-line">{m.body}</p>
-                <p className={cn("mt-1 text-[0.7rem]", mine ? "text-rust-100" : "text-ink-300")}>{formatRelativeDate(m.createdAt)}</p>
+                <p className={cn("mt-1 text-[0.7rem]", mine ? "text-rust-100" : "text-ink-300")} suppressHydrationWarning>
+                  {formatRelativeDate(m.createdAt)}
+                </p>
               </div>
             </div>
           );

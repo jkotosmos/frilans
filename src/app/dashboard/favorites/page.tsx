@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Heart } from "lucide-react";
-import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { serviceCardInclude, toServiceCardData } from "@/lib/queries/services";
+import { getFavoritesForUser } from "@/lib/static-data";
 import { FavoriteCard } from "@/components/dashboard/favorite-card";
 
 export const metadata: Metadata = { title: "Избранное" };
@@ -11,11 +10,7 @@ export default async function FavoritesPage() {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const favorites = await db.favorite.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-    include: { service: { include: serviceCardInclude } },
-  });
+  const favorites = await getFavoritesForUser(user.id);
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -28,11 +23,9 @@ export default async function FavoritesPage() {
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {favorites
-            .filter((f) => f.service.status === "PUBLISHED")
-            .map((f) => (
-              <FavoriteCard key={f.id} serviceId={f.serviceId} service={toServiceCardData(f.service)} />
-            ))}
+          {favorites.map((f) => (
+            <FavoriteCard key={f.favoriteServiceId} serviceId={f.favoriteServiceId} service={f.service} />
+          ))}
         </div>
       )}
     </div>

@@ -1,0 +1,41 @@
+name: Deploy to GitHub Pages
+
+# Builds the static export (see next.config.mjs, DEPLOYMENT.md) and pushes
+# it to the gh-pages branch. Point repo Settings -> Pages -> "Build and
+# deployment" -> Source at "Deploy from a branch", branch gh-pages, folder
+# / (root) — that's the one-time setup step; after that, every push here
+# rebuilds and republishes automatically.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static export
+        run: npm run build
+
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out

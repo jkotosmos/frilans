@@ -1,25 +1,11 @@
 import Link from "next/link";
 import { ShieldCheck, Sparkles, Star, CheckCircle2 } from "lucide-react";
-import { db } from "@/lib/db";
+import { getHomeStats } from "@/lib/static-data";
 import { Suspense } from "react";
 import { SearchBox } from "@/components/layout/search-box";
 
-async function getStats() {
-  const [freelancers, services, ratingAgg] = await Promise.all([
-    db.user.count({ where: { role: "FREELANCER" } }),
-    db.service.count({ where: { status: "PUBLISHED" } }),
-    db.review.aggregate({ _avg: { rating: true }, _count: true }),
-  ]);
-  return {
-    freelancers,
-    services,
-    avgRating: ratingAgg._avg.rating ?? 4.9,
-    reviews: ratingAgg._count,
-  };
-}
-
 export async function Hero() {
-  const stats = await getStats();
+  const stats = getHomeStats();
 
   return (
     <section className="relative overflow-hidden border-b border-ink-100 bg-cream-100">
