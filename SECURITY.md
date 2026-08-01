@@ -102,10 +102,11 @@ mutation:
 Every write path validates its input with a **zod schema** (`lib/validations/*`)
 server-side — client-side constraints (`maxLength`, `required`, etc.) are only a UX
 nicety, never the actual guard. Enum-like fields (`Role`, `OrderStatus`,
-`PackageTier`, ...) are plain `String` columns in SQLite (which has no native enum
-type); the zod `z.enum(...)` in the matching validation file is the single source of
-truth for legal values, so the database can never end up holding a value the
-application layer didn't explicitly allow.
+`PackageTier`, ...) are plain `String` columns rather than native Postgres `enum`s
+(the schema originally targeted SQLite, which has no enum type at all); the zod
+`z.enum(...)` in the matching validation file is the single source of truth for
+legal values, so the database can never end up holding a value the application
+layer didn't explicitly allow.
 
 ## Injection & XSS
 

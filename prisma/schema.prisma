@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -11,11 +11,14 @@ datasource db {
 // Users & auth
 // ---------------------------------------------------------------------------
 
-// NOTE: SQLite has no native enum type, so enum-like fields below are plain
-// String columns. Every write path goes through a zod schema (see
-// src/lib/validations) whose z.enum(...) is the single source of truth for
-// the allowed values — the database never sees an out-of-range value because
-// the application layer rejects it first.
+// NOTE: enum-like fields below are plain String columns rather than native
+// Postgres enums (this schema originally targeted SQLite, which has no enum
+// type at all, and String kept both DBs supported without a migration).
+// Every write path goes through a zod schema (see src/lib/validations) whose
+// z.enum(...) is the single source of truth for the allowed values — the
+// database never sees an out-of-range value because the application layer
+// rejects it first. Moving these to native Postgres enums is a reasonable
+// follow-up, not a correctness gap as-is.
 //
 // Role: "CLIENT" | "FREELANCER" | "ADMIN"
 

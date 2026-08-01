@@ -20,7 +20,7 @@
 - **Tailwind CSS** — авторская дизайн-система («Артель»: тёплая палитра ink/cream/rust/pine,
   контраст serif-заголовков и sans-текста), без стоковых фото — обложки услуг и аватары
   генерируются детерминированно по seed прямо в SVG
-- **Prisma** + SQLite для разработки (схема без проблем переносится на PostgreSQL — см. ниже)
+- **Prisma** + **PostgreSQL**
 - **NextAuth.js** (Credentials + JWT-сессии, пароли на bcrypt)
 - **Zod** — валидация всех входных данных на сервере
 - **Server Actions** — вся запись данных идёт через них, без отдельного REST/GraphQL слоя
@@ -29,11 +29,14 @@
 
 ```bash
 npm install
-cp .env.example .env        # затем сгенерируйте свой NEXTAUTH_SECRET (см. ниже)
-npm run db:push             # создать SQLite-схему
+cp .env.example .env        # укажите DATABASE_URL и сгенерируйте NEXTAUTH_SECRET (см. ниже)
+npm run db:push             # применить схему к вашей PostgreSQL
 npm run db:seed             # заполнить демо-данными
 npm run dev
 ```
+
+Нужна PostgreSQL — быстрее всего бесплатная база на [neon.tech](https://neon.tech),
+либо локально: `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres`.
 
 Откройте http://localhost:3000.
 
@@ -59,7 +62,7 @@ openssl rand -base64 32
 | `npm run build` | Продакшен-сборка (`prisma generate` + `next build`) |
 | `npm run start` | Запуск продакшен-сборки |
 | `npm run lint` / `npm run typecheck` | Линт и проверка типов |
-| `npm run db:push` | Синхронизировать SQLite-схему |
+| `npm run db:push` | Применить схему к базе данных |
 | `npm run db:seed` | Засеять демо-данными |
 | `npm run db:reset` | Полный сброс схемы + повторный сид |
 
@@ -97,8 +100,9 @@ prisma/
 (до 3 тарифов: Базовый/Стандарт/Премиум) → `Order` (статусная машина: ожидание оплаты →
 в работе → сдан → принят/доработка/спор) → `Review`. Отдельно — `Conversation`/`Message`
 для переписки и `Favorite` для избранного. Подробности — в `prisma/schema.prisma`,
-там же пояснение, почему enum-поля хранятся как `String` (SQLite не поддерживает enum;
-единственный источник истины по допустимым значениям — zod-схемы в `lib/validations`).
+там же пояснение, почему enum-поля хранятся как `String`, а не нативный Postgres `enum`
+(исторически из-за SQLite на старте проекта; единственный источник истины по допустимым
+значениям — zod-схемы в `lib/validations`, так что это не пробел в валидации).
 
 ### Дизайн
 
@@ -132,8 +136,8 @@ prisma/
 ## Деплой
 
 Пошаговая инструкция (Vercel + GitHub — рекомендуемый путь, плюс Docker для
-self-hosted) — в [`DEPLOYMENT.md`](./DEPLOYMENT.md). Коротко: смените SQLite на
-PostgreSQL, сгенерируйте новый `NEXTAUTH_SECRET`, задайте `NEXTAUTH_URL` на
-реальный HTTPS-домен — остальное покрывает CI (`.github/workflows/ci.yml`) и,
+self-hosted) — в [`DEPLOYMENT.md`](./DEPLOYMENT.md). Коротко: заведите PostgreSQL
+(см. `.env.example`), сгенерируйте новый `NEXTAUTH_SECRET`, задайте `NEXTAUTH_URL`
+на реальный HTTPS-домен — остальное покрывает CI (`.github/workflows/ci.yml`) и,
 при выборе self-hosted пути, автосборка Docker-образа
 (`.github/workflows/docker-publish.yml`).
