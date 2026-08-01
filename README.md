@@ -129,10 +129,11 @@ prisma/
 
 Подробный разбор модели угроз и мер защиты — в [`SECURITY.md`](./SECURITY.md).
 
-## Продакшен-деплой
+## Деплой
 
-- Переключите `DATABASE_URL` на PostgreSQL (`provider = "postgresql"` в `schema.prisma`,
-  строка подключения в `.env`) — модель данных не использует ничего SQLite-специфичного.
-- Задайте `NEXTAUTH_URL` на реальный HTTPS-домен — это включает secure-cookies у NextAuth.
-- Сгенерируйте новый `NEXTAUTH_SECRET`, не используйте значение из `.env.example`.
-- Запустите `npm run build && npm run start` за обратным прокси с включённым HTTPS/HSTS.
+Пошаговая инструкция (Vercel + GitHub — рекомендуемый путь, плюс Docker для
+self-hosted) — в [`DEPLOYMENT.md`](./DEPLOYMENT.md). Коротко: смените SQLite на
+PostgreSQL, сгенерируйте новый `NEXTAUTH_SECRET`, задайте `NEXTAUTH_URL` на
+реальный HTTPS-домен — остальное покрывает CI (`.github/workflows/ci.yml`) и,
+при выборе self-hosted пути, автосборка Docker-образа
+(`.github/workflows/docker-publish.yml`).

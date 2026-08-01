@@ -17,6 +17,11 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Only affects `docker build` (see Dockerfile) — produces a minimal
+  // self-contained server in .next/standalone instead of requiring the full
+  // node_modules tree at runtime. Vercel ignores this and doesn't need it;
+  // it's here for self-hosted/Docker deploys. See DEPLOYMENT.md.
+  output: "standalone",
   async headers() {
     return [
       {
